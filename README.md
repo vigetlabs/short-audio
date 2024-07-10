@@ -1,9 +1,9 @@
-A Hacker News clone where users can post articles.
+Audio Sharing Platform
 
 ## Technologies
 
 - **Rails:** 7.1.3.4
-- **Ruby:** 3.0.0
+- **Ruby:** 3.2.2
 
 ### Installation
 
