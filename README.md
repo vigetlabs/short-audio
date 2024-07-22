@@ -3,8 +3,8 @@ Short audio sharing app.
 
 ## Technologies
 
-- **Rails:** 7.1.3.4
-- **Ruby:** 3.2.2
+- **Django:** 5.0.7
+- **Python:** 3.12.4
 
 ### Installation
 
