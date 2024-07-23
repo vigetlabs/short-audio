@@ -1,4 +1,14 @@
 {% extends 'base.html' %}
 {% block content %}
-<p> You are at the index </p>
+    <p>You are at the index</p>
+    <a href="{% url 'upload_audio' %}">Upload Sound</a>
+
+    <ul>
+        {% for audio in audio_files %}
+            <li>
+                <a href="{% url 'audio_detail' audio.pk %}">{{ audio.title }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+
 {% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>{{ audio_file.title }}</h1>
+    <p>{{audio_file.description}}</p>
+    <audio controls>
+        <source src="{{ audio_file.file.url }}" type="audio/mp4">
+        Your browser does not support the audio element.
+    </audio>
+    <p>Uploaded at: {{ audio_file.uploaded_at }}</p>
+    <p>Uploaded by: <a href="{% url 'user_detail' audio_file.user.username %}">{{ audio_file.user.username }}</a></p>
+{% endblock %}
