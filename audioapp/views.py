@@ -7,6 +7,7 @@ import allauth
 def index(request):
     return render(request, 'index.html')
 @login_required
+
 def profile_view(request):
     return render(request, 'profile.html', {'username': request.user.username})
 
