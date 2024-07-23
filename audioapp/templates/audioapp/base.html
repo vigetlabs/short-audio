@@ -6,10 +6,10 @@
     <header>
         <nav>
             {% if user.is_authenticated %}
-            <form method="post" action="{% url 'account_logout' %}">
-                {% csrf_token %}
-                <button type="submit">Sign Out</button>
-            </form>
+                <form method="post" action="{% url 'account_logout' %}">
+                    {% csrf_token %}
+                    <button type="submit">Sign Out</button>
+                </form>
             {% else %}
                 <a href="{% url 'account_login' %}">Sign In</a>
                 <a href="{% url 'account_signup' %}">Sign Up</a>
