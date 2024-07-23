@@ -1,5 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 import allauth
 from .forms import AudioFileForm
@@ -30,15 +31,10 @@ def upload_audio(request):
             audio_file = form.save(commit=False)
             audio_file.user = request.user
             audio_file.save()
-            return redirect('audio_list')
+            return redirect(reverse('profile'))
     else:
         form = AudioFileForm()
     return render(request, 'upload_audio.html', {'form': form})
-
-@login_required
-def audio_list(request):
-    audio_files = AudioFile.objects.filter(user=request.user)
-    return render(request, 'audio_list.html', {'audio_files': audio_files})
 
 def audio_detail(request, pk):
     audio_file = get_object_or_404(AudioFile, pk=pk)
