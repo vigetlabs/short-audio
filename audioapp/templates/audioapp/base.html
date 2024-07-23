@@ -5,10 +5,18 @@
 <body>
     <header>
         <nav>
+            <a href="{% url 'index' %}">Home</a>
             {% if user.is_authenticated %}
+<<<<<<< HEAD
                 <form method="post" action="{% url 'account_logout' %}">
                     {% csrf_token %}
                     <button type="submit">Sign Out</button>
+=======
+                <a href="{% url 'profile' %}">Profile</a>
+                <form method="post" action="{% url 'account_logout' %}">
+                    {% csrf_token %}
+                <button type="submit">Sign Out</button>
+>>>>>>> 4d6c769 ([#2] Added audio uploading and playing. Only tested with .mp3 files. Added user detail and audio detail. Index now shows all audio files.)
                 </form>
             {% else %}
                 <a href="{% url 'account_login' %}">Sign In</a>
