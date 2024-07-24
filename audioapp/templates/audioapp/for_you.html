@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>For You</h1>
+    {% if audio_file %}
+        <h2>{{ audio_file.title }}</h2>
+        <p> {{audo_file.description}}</p>
+        <audio controls autoplay>
+            <source src="{{ audio_file.file.url }}" type="audio/mp4">
+            Your browser does not support the audio element.
+        </audio>
+        <p>{{ audio_file.description }}</p>
+        <form method="get" action="{% url 'for_you' %}">
+            <button type="submit">Next</button>
+        </form>
+    {% else %}
+        <p>No audio files available.</p>
+    {% endif %}
+{% endblock %}
