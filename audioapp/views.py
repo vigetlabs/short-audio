@@ -3,8 +3,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 import allauth
-from .forms import AudioFileForm
-from .models import AudioFile, Like
+from .forms import AudioFileForm, CommentForm
+from .models import AudioFile, Like, Comment
 from django.contrib.auth.models import User
 
 
@@ -31,19 +31,34 @@ def upload_audio(request):
             audio_file = form.save(commit=False)
             audio_file.user = request.user
             audio_file.save()
-            return redirect(reverse('profile'))
+            return redirect(reverse('audio_detail', args=[audio_file.pk]))
     else:
         form = AudioFileForm()
     return render(request, 'upload_audio.html', {'form': form})
 
 def audio_detail(request, pk):
     audio_file = get_object_or_404(AudioFile, pk=pk)
+    comments = audio_file.comments.all()
     user_liked = False
     if request.user.is_authenticated:
         user_liked = Like.objects.filter(user=request.user, audio_file=audio_file).exists()
+    
+    if request.method == 'POST':
+        comment_form = CommentForm(request.POST)
+        if comment_form.is_valid():
+            comment = comment_form.save(commit=False)
+            comment.user = request.user
+            comment.audio_file = audio_file
+            comment.save()
+            return redirect('audio_detail', pk=audio_file.pk)
+    else:
+        comment_form = CommentForm()
+
     return render(request, 'audio_detail.html', {
         'audio_file': audio_file,
-        'user_liked': user_liked,    
+        'user_liked': user_liked,
+        'comments': comments,
+        'comment_form': comment_form,
     })
 
 def user_detail(request, username):

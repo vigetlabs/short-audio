@@ -1,54 +1,47 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-from django.contrib.auth.models import User
-from .models import AudioFile, Like
-from .forms import AudioFileForm
-from io import BytesIO
-from django.core.files.uploadedfile import SimpleUploadedFile
+from .factories import UserFactory, AudioFileFactory, LikeFactory, CommentFactory
+from audioapp.models import AudioFile, Like, Comment
 
-class AudioAppTests(TestCase):
+class AudioFileViewsTests(TestCase):
 
     def setUp(self):
         self.client = Client()
-        self.user = User.objects.create_user(username='testuser', password='testpassword')
-        self.audio_file = AudioFile.objects.create(
-            user=self.user,
-            title='Test Audio',
-            file=SimpleUploadedFile("file.mp4", b"file_content", content_type="audio/mp4")
-        )
+        self.user = UserFactory(username='testuser')
+        self.audio_file = AudioFileFactory(user=self.user)
+        self.client.login(username='testuser', password='password')
     
     def test_index_view(self):
         response = self.client.get(reverse('index'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'index.html')
-        self.assertContains(response, 'Test Audio')
+        self.assertContains(response, self.audio_file.title)
     
     def test_profile_view_authenticated(self):
-        self.client.login(username='testuser', password='testpassword')
         response = self.client.get(reverse('profile'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'profile.html')
-        self.assertContains(response, 'Test Audio')
+        self.assertContains(response, self.audio_file.title)
     
     def test_profile_view_unauthenticated(self):
+        self.client.logout()
         response = self.client.get(reverse('profile'))
         self.assertEqual(response.status_code, 302)  # Redirect to login
     
     def test_upload_audio_get(self):
-        self.client.login(username='testuser', password='testpassword')
         response = self.client.get(reverse('upload_audio'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'upload_audio.html')
     
     def test_upload_audio_post(self):
-        self.client.login(username='testuser', password='testpassword')
-        with BytesIO(b"file_content") as fp:
-            fp.name = 'test.mp4'
+        with open(self.audio_file.file.path, 'rb') as file:
             response = self.client.post(reverse('upload_audio'), {
                 'title': 'New Test Audio',
-                'description': 'Description',
-                'file': SimpleUploadedFile(fp.name, fp.read(), content_type='audio/mp4')
+                'description': 'New Description',
+                'file': file
             })
+        if response.status_code == 200:
+            print(response.context['form'].errors)
         self.assertEqual(response.status_code, 302)
         self.assertTrue(AudioFile.objects.filter(title='New Test Audio').exists())
     
@@ -56,30 +49,33 @@ class AudioAppTests(TestCase):
         response = self.client.get(reverse('audio_detail', args=[self.audio_file.pk]))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'audio_detail.html')
-        self.assertContains(response, 'Test Audio')
+        self.assertContains(response, self.audio_file.title)
     
     def test_user_detail_view(self):
         response = self.client.get(reverse('user_detail', args=[self.user.username]))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'user_detail.html')
-        self.assertContains(response, 'Test Audio')
-
-    #Like tests
+        self.assertContains(response, self.audio_file.title)
+    
     def test_like_audio(self):
-        self.client.login(username='testuser', password='testpassword')
         response = self.client.post(reverse('like_audio', args=[self.audio_file.pk]))
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Like.objects.filter(user=self.user, audio_file=self.audio_file).exists())
     
     def test_unlike_audio(self):
-        # First, like the audio file
-        Like.objects.create(user=self.user, audio_file=self.audio_file)
-        self.client.login(username='testuser', password='testpassword')
+        like = LikeFactory(user=self.user, audio_file=self.audio_file)
         response = self.client.post(reverse('unlike_audio', args=[self.audio_file.pk]))
         self.assertEqual(response.status_code, 302)
         self.assertFalse(Like.objects.filter(user=self.user, audio_file=self.audio_file).exists())
     
-    def test_like_model(self):
-        like = Like.objects.create(user=self.user, audio_file=self.audio_file)
-        self.assertEqual(like.user, self.user)
-        self.assertEqual(like.audio_file, self.audio_file)
+    def test_create_comment(self):
+        comment = CommentFactory(user=self.user, audio_file=self.audio_file, text='This is a test comment.')
+        self.assertEqual(comment.user, self.user)
+        self.assertEqual(comment.audio_file, self.audio_file)
+        self.assertEqual(comment.text, 'This is a test comment.')
+
+    def test_comment_relationships(self):
+        comment = CommentFactory(user=self.user, audio_file=self.audio_file)
+        self.assertIn(comment, self.audio_file.comments.all())
+        self.assertIn(comment, Comment.objects.filter(user=self.user))
+    
