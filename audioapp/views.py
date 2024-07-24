@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 import allauth
 from .forms import AudioFileForm
-from .models import AudioFile
+from .models import AudioFile, Like
 from django.contrib.auth.models import User
 
 
@@ -38,11 +38,28 @@ def upload_audio(request):
 
 def audio_detail(request, pk):
     audio_file = get_object_or_404(AudioFile, pk=pk)
-    return render(request, 'audio_detail.html', {'audio_file': audio_file})
+    user_liked = False
+    if request.user.is_authenticated:
+        user_liked = Like.objects.filter(user=request.user, audio_file=audio_file).exists()
+    return render(request, 'audio_detail.html', {
+        'audio_file': audio_file,
+        'user_liked': user_liked,    
+    })
 
 def user_detail(request, username):
     user = get_object_or_404(User, username=username)
     audio_files = AudioFile.objects.filter(user=user)
     return render(request, 'user_detail.html', {'user': user, 'audio_files': audio_files})
 
+@login_required
+def like_audio(request, pk):
+    audio_file = get_object_or_404(AudioFile, pk=pk)
+    like, created = Like.objects.get_or_create(user=request.user, audio_file=audio_file)
+    return redirect('audio_detail', pk=audio_file.pk)
+
+@login_required
+def unlike_audio(request, pk):
+    audio_file = get_object_or_404(AudioFile, pk=pk)
+    Like.objects.filter(user=request.user, audio_file=audio_file).delete()
+    return redirect('audio_detail', pk=audio_file.pk)
     
