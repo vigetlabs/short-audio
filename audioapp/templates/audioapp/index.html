@@ -6,7 +6,8 @@
     <ul>
         {% for audio in audio_files %}
             <li>
-                <a href="{% url 'audio_detail' audio.pk %}">{{ audio.title }}</a>
+                <a href="{% url 'audio_detail' audio.pk %}">{{ audio.title }} </a>
+                <p>{{ audio.like_count }} Likes</p>
             </li>
         {% endfor %}
     </ul>

@@ -9,4 +9,12 @@
     </audio>
     <p>Uploaded at: {{ audio_file.uploaded_at }}</p>
     <p>Uploaded by: <a href="{% url 'user_detail' audio_file.user.username %}">{{ audio_file.user.username }}</a></p>
+    <p>Likes: {{ audio_file.like_count }}</p>
+    {% if user.is_authenticated %}
+        {% if user_liked %}
+            <a href="{% url 'unlike_audio' audio_file.pk %}">Unlike</a>
+        {% else %}
+            <a href="{% url 'like_audio' audio_file.pk %}">Like</a>
+        {% endif %}
+    {% endif %}
 {% endblock %}

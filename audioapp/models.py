@@ -10,3 +10,13 @@ class AudioFile(models.Model):
 
     def __str__(self):
         return self.title
+
+    def like_count(self):
+        return self.like_set.count()
+
+class Like(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    audio_file = models.ForeignKey(AudioFile, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user', 'audio_file')

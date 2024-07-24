@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
-from .models import AudioFile
+from .models import AudioFile, Like
 from .forms import AudioFileForm
 from io import BytesIO
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -63,3 +63,23 @@ class AudioAppTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'user_detail.html')
         self.assertContains(response, 'Test Audio')
+
+    #Like tests
+    def test_like_audio(self):
+        self.client.login(username='testuser', password='testpassword')
+        response = self.client.post(reverse('like_audio', args=[self.audio_file.pk]))
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Like.objects.filter(user=self.user, audio_file=self.audio_file).exists())
+    
+    def test_unlike_audio(self):
+        # First, like the audio file
+        Like.objects.create(user=self.user, audio_file=self.audio_file)
+        self.client.login(username='testuser', password='testpassword')
+        response = self.client.post(reverse('unlike_audio', args=[self.audio_file.pk]))
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Like.objects.filter(user=self.user, audio_file=self.audio_file).exists())
+    
+    def test_like_model(self):
+        like = Like.objects.create(user=self.user, audio_file=self.audio_file)
+        self.assertEqual(like.user, self.user)
+        self.assertEqual(like.audio_file, self.audio_file)
