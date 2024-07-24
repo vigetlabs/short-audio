@@ -17,4 +17,23 @@
             <a href="{% url 'like_audio' audio_file.pk %}">Like</a>
         {% endif %}
     {% endif %}
+    <h2>Comments</h2>
+    <ul>
+        {% for comment in comments %}
+            <li>
+                <strong>{{ comment.user.username }}</strong> ({{ comment.created_at }}): {{ comment.text }}
+            </li>
+        {% endfor %}
+    </ul>
+
+    {% if user.is_authenticated %}
+        <h3>Add a Comment</h3>
+        <form method="post">
+            {% csrf_token %}
+            {{ comment_form.as_p }}
+            <button type="submit">Submit</button>
+        </form>
+    {% else %}
+        <p>You must be <a href="{% url 'account_login' %}">logged in</a> to comment.</p>
+    {% endif %}
 {% endblock %}
