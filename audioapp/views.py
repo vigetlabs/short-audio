@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
-import allauth
+import allauth, random
 from .forms import AudioFileForm, CommentForm
 from .models import AudioFile, Like, Comment
 from django.contrib.auth.models import User
@@ -77,4 +77,12 @@ def unlike_audio(request, pk):
     audio_file = get_object_or_404(AudioFile, pk=pk)
     Like.objects.filter(user=request.user, audio_file=audio_file).delete()
     return redirect('audio_detail', pk=audio_file.pk)
-    
+
+@login_required
+def for_you(request):
+    audio_files = list(AudioFile.objects.all())
+    if audio_files:
+        audio_file = random.choice(audio_files)
+    else:
+        audio_file = None
+    return render(request, 'for_you.html', {'audio_file': audio_file})
