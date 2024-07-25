@@ -32,8 +32,8 @@ def upload_audio(request):
             audio_file = form.save(commit=False)
             audio_file.user = request.user
             audio_file.save()
-            if 'fyp_history' in request.session:
-                request.session['fyp_history'].append(audio_file.id)
+            if "fyp_order" in request.session:
+                request.session["fyp_order"].append(audio_file.id)
                 request.session.modified = True
             return redirect(reverse("audio_detail", args=[audio_file.pk]))
     else:
@@ -99,16 +99,16 @@ def unlike_audio(request, pk):
 
 @login_required
 def for_you(request):
-    if "fyp_history" not in request.session:
+    if "fyp_order" not in request.session:
         audio_files = list(AudioFile.objects.all())
-        fyp_history = [audio_file.id for audio_file in audio_files]
-        random.shuffle(fyp_history)
-        request.session["fyp_history"] = fyp_history
+        fyp_order = [audio_file.id for audio_file in audio_files]
+        random.shuffle(fyp_order)
+        request.session["fyp_order"] = fyp_order
         request.session["fyp_index"] = 0
 
-    fyp_history = request.session["fyp_history"]
+    fyp_order = request.session["fyp_order"]
     fyp_index = request.session["fyp_index"]
-    reached_end = fyp_index == len(fyp_history) - 1
+    reached_end = fyp_index == len(fyp_order) - 1
 
     if (
         "action" in request.GET
@@ -119,15 +119,15 @@ def for_you(request):
     elif (
         "action" in request.GET
         and request.GET["action"] == "next"
-        and fyp_index < len(fyp_history) - 1
+        and fyp_index < len(fyp_order) - 1
     ):
         fyp_index += 1
-        reached_end = fyp_index == len(fyp_history) - 1
+        reached_end = fyp_index == len(fyp_order) - 1
 
     request.session["fyp_index"] = fyp_index
     request.session.modified = True
 
-    audio_file = get_object_or_404(AudioFile, id=fyp_history[fyp_index])
+    audio_file = get_object_or_404(AudioFile, id=fyp_order[fyp_index])
 
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return JsonResponse(
