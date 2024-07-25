@@ -7,6 +7,7 @@ from .views import (
     like_audio,
     unlike_audio,
     for_you,
+    update_autoplay,
 )
 
 
@@ -20,4 +21,5 @@ urlpatterns = [
     path("audio/<int:pk>/like/", like_audio, name="like_audio"),
     path("audio/<int:pk>/unlike/", unlike_audio, name="unlike_audio"),
     path("for_you/", for_you, name="for_you"),
+    path("update_autoplay/", update_autoplay, name="update_autoplay"),
 ]
