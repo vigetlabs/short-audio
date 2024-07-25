@@ -74,7 +74,9 @@ def user_detail(request, username):
     page_user = get_object_or_404(User, username=username)
     audio_files = AudioFile.objects.filter(user=page_user)
     return render(
-        request, "user_detail.html", {"page_user": page_user, "audio_files": audio_files}
+        request,
+        "user_detail.html",
+        {"page_user": page_user, "audio_files": audio_files},
     )
 
 
@@ -94,26 +96,38 @@ def unlike_audio(request, pk):
 
 @login_required
 def for_you(request):
-    if 'fyp_history' not in request.session:
+    if "fyp_history" not in request.session:
         audio_files = list(AudioFile.objects.all())
         fyp_history = [audio_file.id for audio_file in audio_files]
         random.shuffle(fyp_history)
-        request.session['fyp_history'] = fyp_history
-        request.session['fyp_index'] = 0
+        request.session["fyp_history"] = fyp_history
+        request.session["fyp_index"] = 0
 
-    fyp_history = request.session['fyp_history']
-    fyp_index = request.session['fyp_index']
+    fyp_history = request.session["fyp_history"]
+    fyp_index = request.session["fyp_index"]
     reached_end = fyp_index == len(fyp_history) - 1
 
-    if 'action' in request.GET and request.GET['action'] == 'previous' and fyp_index > 0:
+    if (
+        "action" in request.GET
+        and request.GET["action"] == "previous"
+        and fyp_index > 0
+    ):
         fyp_index -= 1
-    elif 'action' in request.GET and request.GET['action'] == 'next' and fyp_index < len(fyp_history) - 1:
+    elif (
+        "action" in request.GET
+        and request.GET["action"] == "next"
+        and fyp_index < len(fyp_history) - 1
+    ):
         fyp_index += 1
         reached_end = fyp_index == len(fyp_history) - 1
 
-    request.session['fyp_index'] = fyp_index
+    request.session["fyp_index"] = fyp_index
     request.session.modified = True
 
     audio_file = get_object_or_404(AudioFile, id=fyp_history[fyp_index])
 
-    return render(request, "for_you.html", {"audio_file": audio_file, "fyp_index": fyp_index, "reached_end": reached_end})
+    return render(
+        request,
+        "for_you.html",
+        {"audio_file": audio_file, "fyp_index": fyp_index, "reached_end": reached_end},
+    )
