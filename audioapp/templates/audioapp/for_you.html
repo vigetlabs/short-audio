@@ -21,6 +21,17 @@
         <label>
             <input type="checkbox" id="autoplay-checkbox" {% if autoplay %}checked{% endif %}> Autoplay
         </label>
+
+        <form id="comment-form" method="post" action="{% url 'for_you' %}">
+            {% csrf_token %}
+            {{ comment_form.as_p }}
+            <button type="submit" name="action" value="comment">Add Comment</button>
+        </form>
+        <ul id="comments-list">
+            {% for comment in comments %}
+                <li>{{ comment.user.username }}: {{ comment.text }}</li>
+            {% endfor %}
+        </ul>
     {% else %}
         <p>No audio files available.</p>
     {% endif %}
@@ -48,6 +59,13 @@
                     if (data.reached_end) {
                         document.getElementById('autoplay-checkbox').checked = false;
                     }
+                    var commentsList = document.getElementById('comments-list');
+                    commentsList.innerHTML = '';
+                    data.comments.forEach(function(comment) {
+                        var li = document.createElement('li');
+                        li.textContent = comment.user + ': ' + comment.text;
+                        commentsList.appendChild(li);
+                    });
                 }
             };
             xhr.send();
@@ -76,6 +94,14 @@
                 if (data.reached_end) {
                     document.getElementById('autoplay-checkbox').checked = false;
                 }
+
+                var commentsList = document.getElementById('comments-list');
+                    commentsList.innerHTML = '';
+                    data.comments.forEach(function(comment) {
+                        var li = document.createElement('li');
+                        li.textContent = comment.user + ': ' + comment.text;
+                        commentsList.appendChild(li);
+                    });
             }
         };
         xhr.send(formData);
@@ -102,6 +128,13 @@
             var formData = new FormData();
             formData.append('action', 'like');
             postAudio('like', formData);
+        });
+
+        document.getElementById('comment-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            formData.append('action', 'comment');
+            postAudio('comment', formData);
         });
         
 

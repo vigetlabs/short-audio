@@ -112,14 +112,14 @@ def for_you(request):
     audio_file = get_object_or_404(AudioFile, id=fyp_order[fyp_index])
 
     if request.method == "POST":
-        # if request.POST.get("action") == "comment":
-        #     comment_form = CommentForm(request.POST)
-        #     if comment_form.is_valid():
-        #         comment = comment_form.save(commit=False)
-        #         comment.user = request.user
-        #         comment.audio_file = audio_file
-        #         comment.save()
-        if request.POST.get("action") == "like":
+        if request.POST.get("action") == "comment":
+            comment_form = CommentForm(request.POST)
+            if comment_form.is_valid():
+                comment = comment_form.save(commit=False)
+                comment.user = request.user
+                comment.audio_file = audio_file
+                comment.save()
+        elif request.POST.get("action") == "like":
             if not Like.objects.filter(
                 user=request.user, audio_file=audio_file
             ).exists():
@@ -161,6 +161,10 @@ def for_you(request):
                 "reached_end": reached_end,
                 "username": audio_file.user.username,
                 "like_count": audio_file.like_set.count(),
+                "comments": [
+                    {"user": comment.user.username, "text": comment.text}
+                    for comment in audio_file.comments.all()
+                ],
             }
         )
 
@@ -174,6 +178,8 @@ def for_you(request):
             "fyp_index": fyp_index,
             "reached_end": reached_end,
             "autoplay": autoplay,
+            "comment_form": CommentForm(),
+            "comments": audio_file.comments.all(),
         },
     )
 
