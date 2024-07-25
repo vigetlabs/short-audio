@@ -32,6 +32,9 @@ def upload_audio(request):
             audio_file = form.save(commit=False)
             audio_file.user = request.user
             audio_file.save()
+            if 'fyp_history' in request.session:
+                request.session['fyp_history'].append(audio_file.id)
+                request.session.modified = True
             return redirect(reverse("audio_detail", args=[audio_file.pk]))
     else:
         form = AudioFileForm()
