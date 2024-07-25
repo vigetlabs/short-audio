@@ -86,7 +86,7 @@ def user_detail(request, username):
 @login_required
 def like_audio(request, pk):
     audio_file = get_object_or_404(AudioFile, pk=pk)
-    like, created = Like.objects.get_or_create(user=request.user, audio_file=audio_file)
+    Like.objects.get_or_create(user=request.user, audio_file=audio_file)
     return redirect("audio_detail", pk=audio_file.pk)
 
 
@@ -109,6 +109,29 @@ def for_you(request):
     fyp_order = request.session["fyp_order"]
     fyp_index = request.session["fyp_index"]
     reached_end = fyp_index == len(fyp_order) - 1
+    audio_file = get_object_or_404(AudioFile, id=fyp_order[fyp_index])
+
+    if request.method == "POST":
+        # if request.POST.get("action") == "comment":
+        #     comment_form = CommentForm(request.POST)
+        #     if comment_form.is_valid():
+        #         comment = comment_form.save(commit=False)
+        #         comment.user = request.user
+        #         comment.audio_file = audio_file
+        #         comment.save()
+        if request.POST.get("action") == "like":
+            if not Like.objects.filter(
+                user=request.user, audio_file=audio_file
+            ).exists():
+                audio_file = get_object_or_404(AudioFile, id=fyp_order[fyp_index])
+                like, created = Like.objects.get_or_create(
+                    user=request.user, audio_file=audio_file
+                )
+                if created:
+                    print("Like created:", like)
+            else:
+                Like.objects.filter(user=request.user, audio_file=audio_file).delete()
+                print("Like deleted")
 
     if (
         "action" in request.GET
@@ -126,7 +149,6 @@ def for_you(request):
 
     request.session["fyp_index"] = fyp_index
     request.session.modified = True
-
     audio_file = get_object_or_404(AudioFile, id=fyp_order[fyp_index])
 
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
@@ -137,6 +159,8 @@ def for_you(request):
                 "description": audio_file.description,
                 "fyp_index": fyp_index,
                 "reached_end": reached_end,
+                "username": audio_file.user.username,
+                "like_count": audio_file.like_set.count(),
             }
         )
 

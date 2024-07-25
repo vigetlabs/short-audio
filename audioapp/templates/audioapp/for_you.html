@@ -5,7 +5,13 @@
     {% if audio_file %}
         <h2 id="audio-title">{{ audio_file.title }}</h2>
         <p id="audio-description">{{ audio_file.description }}</p>
-        <p>By {{ audio_file.user.username }}</p>
+        <p id="audio-like-count">{{ audio_file.like_count }} Likes</p>
+        
+        <button id="like-button" data-audio-id="{{ audio_file.id }}" data-action="like">
+            Like
+        </button>
+
+        <p id="audio-username">By {{ audio_file.user.username }}</p>
         <audio controls id="audio-player" autoplay>
             <source id="audio-source" src="{{ audio_file.file.url }}" type="audio/mp4">
             Your browser does not support the audio element.
@@ -20,7 +26,7 @@
     {% endif %}
 
     <script>
-        function updateAudio(action) {
+        function getAudio(action) {
             var xhr = new XMLHttpRequest();
             xhr.open('GET', '{% url "for_you" %}?action=' + action, true);
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
@@ -29,6 +35,8 @@
                     var data = JSON.parse(xhr.responseText);
                     document.getElementById('audio-title').textContent = data.title;
                     document.getElementById('audio-description').textContent = data.description;
+                    document.getElementById('audio-like-count').textContent = data.like_count + ' Likes';
+                    document.getElementById('audio-username').textContent = 'By ' + data.username;
                     document.getElementById('audio-source').src = data.audio_file_url;
                     var audioPlayer = document.getElementById('audio-player');
                     audioPlayer.load();
@@ -45,19 +53,57 @@
             xhr.send();
         }
 
+        function postAudio(action, formData = null) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '{% url "for_you" %}?action=' + action, true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                var data = JSON.parse(xhr.responseText);
+                document.getElementById('audio-title').textContent = data.title;
+                document.getElementById('audio-description').textContent = data.description;
+                document.getElementById('audio-like-count').textContent = data.like_count + ' Likes';
+                document.getElementById('audio-username').textContent = 'By ' + data.username;
+                document.getElementById('audio-source').src = data.audio_file_url;
+                var audioPlayer = document.getElementById('audio-player');
+                audioPlayer.load();
+                if (document.getElementById('autoplay-checkbox').checked) {
+                    audioPlayer.play();
+                }
+                document.getElementById('previous-button').disabled = data.fyp_index <= 0;
+                document.getElementById('next-button').disabled = data.reached_end;
+                if (data.reached_end) {
+                    document.getElementById('autoplay-checkbox').checked = false;
+                }
+            }
+        };
+        xhr.send(formData);
+    }
+
+
         document.getElementById('previous-button').addEventListener('click', function() {
-            updateAudio('previous');
+            getAudio('previous');
         });
 
         document.getElementById('next-button').addEventListener('click', function() {
-            updateAudio('next');
+            getAudio('next');
         });
 
         document.getElementById('audio-player').addEventListener('ended', function() {
             if (document.getElementById('autoplay-checkbox').checked) {
-                updateAudio('next');
+                getAudio('next');
             }
         });
+
+        
+        document.getElementById('like-button').addEventListener('click', function() {
+            event.preventDefault();
+            var formData = new FormData();
+            formData.append('action', 'like');
+            postAudio('like', formData);
+        });
+        
 
         document.getElementById('autoplay-checkbox').addEventListener('change', function() {
             var isChecked = this.checked;
