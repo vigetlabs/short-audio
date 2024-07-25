@@ -3,17 +3,24 @@
 {% block content %}
     <h1>For You</h1>
     {% if audio_file %}
-        <h2>{{ audio_file.title }}</h2>
-        <p> {{audo_file.description}}</p>
-        <audio controls autoplay>
+        <h2>{{ audio_file.title}}</h2>
+        <h3>{{fyp_index}}, {{reached_end }}</h3>
+        <p>{{ audio_file.description }}</p>
+        <audio controls id='audio-player' autoplay>
             <source src="{{ audio_file.file.url }}" type="audio/mp4">
             Your browser does not support the audio element.
         </audio>
-        <p>{{ audio_file.description }}</p>
         <form method="get" action="{% url 'for_you' %}">
-            <button type="submit">Next</button>
+            <button type="submit" name="action" value="previous" {% if fyp_index <= 0 %}disabled{% endif %}>Previous</button>
+            <button id="next-button" type="submit" name="action" value="next" {% if reached_end == True %}disabled{% endif %}>Next</button>
         </form>
     {% else %}
         <p>No audio files available.</p>
     {% endif %}
+
+    <script>
+        document.getElementById('audio-player').addEventListener('ended', function() {
+            document.getElementById('next-button').click();
+        });
+    </script>
 {% endblock %}

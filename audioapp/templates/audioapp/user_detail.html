@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>{{ user.username }}</h1>
-    <h2>{{ user.username }}'s Sounds</h2>
+    <h1>{{ page_user.username }}</h1>
+    <h2>{{ page_user.username }}'s Sounds</h2>
     <ul>
         {% for audio in audio_files %}
             <li>
