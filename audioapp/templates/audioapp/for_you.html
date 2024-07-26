@@ -37,10 +37,13 @@
     {% endif %}
 
     <script>
-        function getAudio(action) {
+        function sendAudioRequest(action, method = 'GET', formData = null) {
             var xhr = new XMLHttpRequest();
-            xhr.open('GET', '{% url "for_you" %}?action=' + action, true);
+            xhr.open(method, '{% url "for_you" %}?action=' + action, true);
             xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            if (method === 'POST') {
+                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+            }
             xhr.onload = function () {
                 if (xhr.status === 200) {
                     var data = JSON.parse(xhr.responseText);
@@ -59,6 +62,7 @@
                     if (data.reached_end) {
                         document.getElementById('autoplay-checkbox').checked = false;
                     }
+    
                     var commentsList = document.getElementById('comments-list');
                     commentsList.innerHTML = '';
                     data.comments.forEach(function(comment) {
@@ -68,76 +72,39 @@
                     });
                 }
             };
-            xhr.send();
+            xhr.send(formData);
         }
-
-        function postAudio(action, formData = null) {
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '{% url "for_you" %}?action=' + action, true);
-            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-            xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
-            xhr.onload = function () {
-                if (xhr.status === 200) {
-                    var data = JSON.parse(xhr.responseText);
-                    document.getElementById('audio-title').textContent = data.title;
-                    document.getElementById('audio-description').textContent = data.description;
-                    document.getElementById('audio-like-count').textContent = data.like_count + ' Likes';
-                    document.getElementById('audio-username').textContent = 'By ' + data.username;
-                    document.getElementById('audio-source').src = data.audio_file_url;
-                    var audioPlayer = document.getElementById('audio-player');
-                    audioPlayer.load();
-                    if (document.getElementById('autoplay-checkbox').checked) {
-                        audioPlayer.play();
-                    }
-                    document.getElementById('previous-button').disabled = data.fyp_index <= 0;
-                    document.getElementById('next-button').disabled = data.reached_end;
-                    if (data.reached_end) {
-                        document.getElementById('autoplay-checkbox').checked = false;
-                    }
-
-                    var commentsList = document.getElementById('comments-list');
-                    commentsList.innerHTML = '';
-                    data.comments.forEach(function(comment) {
-                        var li = document.createElement('li');
-                        li.textContent = comment.user + ': ' + comment.text;
-                        commentsList.appendChild(li);
-                    });
-                }
-            };
-                xhr.send(formData);
-        }
-
-
-        document.getElementById('previous-button').addEventListener('click', function() {
-            getAudio('previous');
+    
+        document.getElementById('previous-button').addEventListener('click', function(event) {
+            event.preventDefault();
+            sendAudioRequest('previous');
         });
-
-        document.getElementById('next-button').addEventListener('click', function() {
-            getAudio('next');
+    
+        document.getElementById('next-button').addEventListener('click', function(event) {
+            event.preventDefault();
+            sendAudioRequest('next');
         });
-
+    
         document.getElementById('audio-player').addEventListener('ended', function() {
             if (document.getElementById('autoplay-checkbox').checked) {
-                getAudio('next');
+                sendAudioRequest('next');
             }
         });
-
-        
-        document.getElementById('like-button').addEventListener('click', function() {
+    
+        document.getElementById('like-button').addEventListener('click', function(event) {
             event.preventDefault();
             var formData = new FormData();
             formData.append('action', 'like');
-            postAudio('like', formData);
+            sendAudioRequest('like', 'POST', formData);
         });
-
+    
         document.getElementById('comment-form').addEventListener('submit', function(event) {
             event.preventDefault();
             var formData = new FormData(this);
             formData.append('action', 'comment');
-            postAudio('comment', formData);
+            sendAudioRequest('comment', 'POST', formData);
         });
-        
-
+    
         document.getElementById('autoplay-checkbox').addEventListener('change', function() {
             var isChecked = this.checked;
             var xhr = new XMLHttpRequest();
