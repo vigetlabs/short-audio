@@ -114,14 +114,12 @@ def for_you(request):
 
         return fyp_index, reached_end
 
-
     def handle_post_request(request, audio_file):
         action = request.POST.get("action")
         if action == "comment":
             handle_comment(request, audio_file)
         elif action == "like":
             handle_like(request, audio_file)
-
 
     def handle_comment(request, audio_file):
         comment_form = CommentForm(request.POST)
@@ -130,7 +128,6 @@ def for_you(request):
             comment.user = request.user
             comment.audio_file = audio_file
             comment.save()
-
 
     def handle_like(request, audio_file):
         if not Like.objects.filter(user=request.user, audio_file=audio_file).exists():
@@ -141,8 +138,6 @@ def for_you(request):
                 print("Like created:", like)
         else:
             Like.objects.filter(user=request.user, audio_file=audio_file).delete()
-        
-
 
     def fyp_xml_http_request(audio_file, reached_end, fyp_index):
         return JsonResponse(
@@ -160,6 +155,7 @@ def for_you(request):
                 ],
             }
         )
+
     if "fyp_order" not in request.session:
         audio_files = list(AudioFile.objects.all())
         fyp_order = [audio_file.id for audio_file in audio_files]
@@ -198,13 +194,13 @@ def for_you(request):
         },
     )
 
-def update_autoplay(request):
-        if (
-            request.headers.get("x-requested-with") == "XMLHttpRequest"
-            and "autoplay" in request.GET
-        ):
-            request.session["autoplay"] = request.GET.get("autoplay") == "true"
-            request.session.modified = True
-            return JsonResponse({"status": "success"})
-        return JsonResponse({"status": "fail"}, status=400)
 
+def update_autoplay(request):
+    if (
+        request.headers.get("x-requested-with") == "XMLHttpRequest"
+        and "autoplay" in request.GET
+    ):
+        request.session["autoplay"] = request.GET.get("autoplay") == "true"
+        request.session.modified = True
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"status": "fail"}, status=400)
