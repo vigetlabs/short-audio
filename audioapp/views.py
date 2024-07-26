@@ -99,6 +99,67 @@ def unlike_audio(request, pk):
 
 @login_required
 def for_you(request):
+    def update_fyp_index(request, fyp_order, fyp_index):
+        reached_end = False
+        action = request.GET.get("action")
+
+        if action == "next" and fyp_index < len(fyp_order) - 1:
+            fyp_index += 1
+            reached_end = fyp_index == len(fyp_order) - 1
+        elif action == "previous" and fyp_index > 0:
+            fyp_index -= 1
+
+        request.session["fyp_index"] = fyp_index
+        request.session.modified = True
+
+        return fyp_index, reached_end
+
+
+    def handle_post_request(request, audio_file):
+        action = request.POST.get("action")
+        if action == "comment":
+            handle_comment(request, audio_file)
+        elif action == "like":
+            handle_like(request, audio_file)
+
+
+    def handle_comment(request, audio_file):
+        comment_form = CommentForm(request.POST)
+        if comment_form.is_valid():
+            comment = comment_form.save(commit=False)
+            comment.user = request.user
+            comment.audio_file = audio_file
+            comment.save()
+
+
+    def handle_like(request, audio_file):
+        if not Like.objects.filter(user=request.user, audio_file=audio_file).exists():
+            like, created = Like.objects.get_or_create(
+                user=request.user, audio_file=audio_file
+            )
+            if created:
+                print("Like created:", like)
+        else:
+            Like.objects.filter(user=request.user, audio_file=audio_file).delete()
+        
+
+
+    def fyp_xml_http_request(audio_file, reached_end, fyp_index):
+        return JsonResponse(
+            {
+                "audio_file_url": audio_file.file.url,
+                "title": audio_file.title,
+                "description": audio_file.description,
+                "fyp_index": fyp_index,
+                "reached_end": reached_end,
+                "username": audio_file.user.username,
+                "like_count": audio_file.like_set.count(),
+                "comments": [
+                    {"user": comment.user.username, "text": comment.text}
+                    for comment in audio_file.comments.all()
+                ],
+            }
+        )
     if "fyp_order" not in request.session:
         audio_files = list(AudioFile.objects.all())
         fyp_order = [audio_file.id for audio_file in audio_files]
@@ -137,77 +198,13 @@ def for_you(request):
         },
     )
 
-
-def update_fyp_index(request, fyp_order, fyp_index):
-    reached_end = False
-    action = request.GET.get("action")
-
-    if action == "next" and fyp_index < len(fyp_order) - 1:
-        fyp_index += 1
-        reached_end = fyp_index == len(fyp_order) - 1
-    elif action == "previous" and fyp_index > 0:
-        fyp_index -= 1
-
-    request.session["fyp_index"] = fyp_index
-    request.session.modified = True
-
-    return fyp_index, reached_end
-
-
-def handle_post_request(request, audio_file):
-    action = request.POST.get("action")
-    if action == "comment":
-        handle_comment(request, audio_file)
-    elif action == "like":
-        handle_like(request, audio_file)
-
-
-def handle_comment(request, audio_file):
-    comment_form = CommentForm(request.POST)
-    if comment_form.is_valid():
-        comment = comment_form.save(commit=False)
-        comment.user = request.user
-        comment.audio_file = audio_file
-        comment.save()
-
-
-def handle_like(request, audio_file):
-    if not Like.objects.filter(user=request.user, audio_file=audio_file).exists():
-        like, created = Like.objects.get_or_create(
-            user=request.user, audio_file=audio_file
-        )
-        if created:
-            print("Like created:", like)
-    else:
-        Like.objects.filter(user=request.user, audio_file=audio_file).delete()
-        
-
-
-def fyp_xml_http_request(audio_file, reached_end, fyp_index):
-    return JsonResponse(
-        {
-            "audio_file_url": audio_file.file.url,
-            "title": audio_file.title,
-            "description": audio_file.description,
-            "fyp_index": fyp_index,
-            "reached_end": reached_end,
-            "username": audio_file.user.username,
-            "like_count": audio_file.like_set.count(),
-            "comments": [
-                {"user": comment.user.username, "text": comment.text}
-                for comment in audio_file.comments.all()
-            ],
-        }
-    )
-
-
-@login_required
 def update_autoplay(request):
-    if (
-        request.headers.get("x-requested-with") == "XMLHttpRequest"
-        and "autoplay" in request.GET
-    ):
-        request.session["autoplay"] = request.GET.get("autoplay") == "true"
-        request.session.modified = True
-        return JsonResponse({"status": "success"})
-    return JsonResponse({"status": "fail"}, status=400)
+        if (
+            request.headers.get("x-requested-with") == "XMLHttpRequest"
+            and "autoplay" in request.GET
+        ):
+            request.session["autoplay"] = request.GET.get("autoplay") == "true"
+            request.session.modified = True
+            return JsonResponse({"status": "success"})
+        return JsonResponse({"status": "fail"}, status=400)
+
