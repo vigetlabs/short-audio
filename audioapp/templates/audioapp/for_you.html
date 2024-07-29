@@ -6,7 +6,7 @@
         <div class="flex items-center space-x-4">
             <h2 id="audio-title" class="text-xl font-bold">{{ audio_file.title }}</h2>
             <p id="audio-username" class="text-sm text-gray-600">
-                By <a id="audio-user-link" href="{% url 'user_detail' audio_file.user.username %}" class="text-sm text-gray-600 hover:underline">{{ audio_file.user.username }}</a>
+                By <a id="audio-user-link" href="{% url 'user_detail' audio_file.user.username %}" class="text-sm text-gray-600 hover:underline focus-visible:underline">{{ audio_file.user.username }}</a>
             </p>            
         </div>
         <div class="flex items-center space-x-4 ml-auto">
@@ -57,11 +57,11 @@
                 {{ field }}
             {% endfor %}
             <div></div>
-            <button type="submit" name="action" value="comment" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">Comment</button>
+            <button type="submit" name="action" value="comment" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 focus-visible:bg-blue-700">Comment</button>
         </form>
         <ul id="comments-list">
             {% for comment in comments %}
-                <li><a href="{% url 'user_detail' comment.user.username %}" class="text-m text-black-600 hover:underline">{{ comment.user.username }}</a>: {{ comment.text }}</li>
+                <li><a href="{% url 'user_detail' comment.user.username %}" class="text-m text-black-600 hover:underline focus-visible:underline">{{ comment.user.username }}</a>: {{ comment.text }}</li>
             {% endfor %}
         </ul>
     {% else %}
@@ -117,7 +117,7 @@
 
                         var userLink = document.createElement('a');
                         userLink.href = comment.profile_url;
-                        userLink.className = 'text-m text-black-600 hover:underline';
+                        userLink.className = 'text-m text-black-600 hover:underline focus-visible:underline';
                         userLink.textContent = comment.user;
 
                         li.appendChild(userLink);

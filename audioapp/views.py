@@ -125,14 +125,15 @@ def for_you(request):
             comment.save()
 
     def handle_like(request, audio_file):
-        if not has_liked(request, audio_file):
+        if has_liked(request, audio_file):
+            Like.objects.filter(user=request.user, audio_file=audio_file).delete()
+        else:
             like, created = Like.objects.get_or_create(
                 user=request.user, audio_file=audio_file
             )
             if created:
                 print("Like created:", like)
-        else:
-            Like.objects.filter(user=request.user, audio_file=audio_file).delete()
+            
 
     def has_liked(request, audio_file):
         return Like.objects.filter(user=request.user, audio_file=audio_file).exists()
