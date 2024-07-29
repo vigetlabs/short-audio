@@ -15,9 +15,9 @@ class CommentForm(forms.ModelForm):
         widgets = {
             "text": forms.Textarea(
                 attrs={
-                    "rows": 5,  # Number of rows
-                    "cols": 30,  # Number of columns
-                    "class": "w-full p-2 border border-gray-300 rounded",  # Tailwind CSS classes
+                    "rows": 5,
+                    "cols": 30,  
+                    "class": "w-full p-2 border border-gray-300 rounded",
                     "placeholder": "Write your comment here...",
                 }
             ),

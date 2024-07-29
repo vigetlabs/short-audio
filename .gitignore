@@ -3,3 +3,4 @@ __pycache__/
 *.py[cod]
 db.sqlite3
 media/audio_files/
+theme/static/css/dist/styles.css
