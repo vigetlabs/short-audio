@@ -6,8 +6,8 @@
         <div class="flex items-center space-x-4">
             <h2 id="audio-title" class="text-xl font-bold">{{ audio_file.title }}</h2>
             <p id="audio-username" class="text-sm text-gray-600">
-                By <a href="{% url 'user_detail' audio_file.user.username %}" class="text-sm text-gray-600 hover:underline">{{ audio_file.user.username }}</a>
-            </p>
+                By <a id="audio-user-link" href="{% url 'user_detail' audio_file.user.username %}" class="text-sm text-gray-600 hover:underline">{{ audio_file.user.username }}</a>
+            </p>            
         </div>
         <div class="flex items-center space-x-4 ml-auto">
             <p id="audio-like-count">{{ audio_file.like_count }} Likes</p>
@@ -84,14 +84,16 @@
                         audioPlayer.load();
                         if (document.getElementById('autoplay-checkbox').checked) {
                             audioPlayer.play();
-                    }
-
-                    }
+                        }
+                        document.getElementById('comment-form').reset();
+                    }   
                     var data = JSON.parse(xhr.responseText);
                     document.getElementById('audio-title').textContent = data.title;
                     document.getElementById('audio-description').textContent = data.description;
                     document.getElementById('audio-like-count').textContent = data.like_count + ' Likes';
-                    document.getElementById('audio-username').textContent = 'By ' + data.username;
+                    var userProfileLink = document.getElementById('audio-user-link');
+                    userProfileLink.href = data.profile_url;
+                    userProfileLink.textContent = data.username;
                     
                     document.getElementById('previous-button').disabled = data.fyp_index <= 0;
                     document.getElementById('next-button').disabled = data.reached_end;
@@ -107,11 +109,20 @@
                         likeButton.classList.remove('text-red-500');
                         likeButton.classList.add('text-black-500');
                     }
+                    
                     var commentsList = document.getElementById('comments-list');
                     commentsList.innerHTML = '';
                     data.comments.forEach(function(comment) {
                         var li = document.createElement('li');
-                        li.textContent = comment.user + ': ' + comment.text;
+
+                        var userLink = document.createElement('a');
+                        userLink.href = comment.profile_url;
+                        userLink.className = 'text-m text-black-600 hover:underline';
+                        userLink.textContent = comment.user;
+
+                        li.appendChild(userLink);
+                        li.appendChild(document.createTextNode(': ' + comment.text));
+
                         commentsList.appendChild(li);
                     });
                     
@@ -148,6 +159,7 @@
             var formData = new FormData(this);
             formData.append('action', 'comment');
             sendAudioRequest('comment', 'POST', formData);
+            document.getElementById('comment-form').reset();
         });
     
         document.getElementById('autoplay-checkbox').addEventListener('change', function() {

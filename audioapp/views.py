@@ -9,11 +9,6 @@ from django.contrib.auth.models import User
 
 
 # Create your views here.
-def index(request):
-    audio_files = AudioFile.objects.all()
-    return render(request, "index.html", {"audio_files": audio_files})
-
-
 @login_required
 def profile_view(request):
     audio_files = AudioFile.objects.filter(user=request.user)
@@ -138,9 +133,9 @@ def for_you(request):
                 print("Like created:", like)
         else:
             Like.objects.filter(user=request.user, audio_file=audio_file).delete()
-    
+
     def has_liked(request, audio_file):
-        return  Like.objects.filter(user=request.user, audio_file=audio_file).exists()
+        return Like.objects.filter(user=request.user, audio_file=audio_file).exists()
 
     def fyp_xml_http_request(audio_file, reached_end, fyp_index, request):
         return JsonResponse(
@@ -153,8 +148,15 @@ def for_you(request):
                 "has_liked": has_liked(request, audio_file),
                 "username": audio_file.user.username,
                 "like_count": audio_file.like_set.count(),
+                "profile_url": reverse("user_detail", args=[audio_file.user.username]),
                 "comments": [
-                    {"user": comment.user.username, "text": comment.text}
+                    {
+                        "user": comment.user.username,
+                        "text": comment.text,
+                        "profile_url": reverse(
+                            "user_detail", args=[comment.user.username]
+                        ),
+                    }
                     for comment in audio_file.comments.all()
                 ],
             }

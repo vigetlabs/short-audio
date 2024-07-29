@@ -13,10 +13,12 @@ class CommentForm(forms.ModelForm):
         model = Comment
         fields = ["text"]
         widgets = {
-            'text': forms.Textarea(attrs={
-                'rows': 5,  # Number of rows
-                'cols': 30,  # Number of columns
-                'class': 'w-full p-2 border border-gray-300 rounded',  # Tailwind CSS classes
-                'placeholder': 'Write your comment here...',
-            }),
+            "text": forms.Textarea(
+                attrs={
+                    "rows": 5,  # Number of rows
+                    "cols": 30,  # Number of columns
+                    "class": "w-full p-2 border border-gray-300 rounded",  # Tailwind CSS classes
+                    "placeholder": "Write your comment here...",
+                }
+            ),
         }

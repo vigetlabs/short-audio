@@ -13,12 +13,6 @@ class AudioFileViewsTests(TestCase):
         self.audio_files = [AudioFileFactory(user=self.user) for _ in range(5)]
         self.client.login(username="testuser", password="password")
 
-    def test_index_view(self):
-        response = self.client.get(reverse("index"))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "index.html")
-        self.assertContains(response, self.audio_file.title)
-
     def test_profile_view_authenticated(self):
         response = self.client.get(reverse("profile"))
         self.assertEqual(response.status_code, 200)
