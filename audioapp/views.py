@@ -150,6 +150,7 @@ def for_you(request):
                 "username": audio_file.user.username,
                 "like_count": audio_file.like_set.count(),
                 "profile_url": reverse("user_detail", args=[audio_file.user.username]),
+                "audio_source": audio_file.file.url,
                 "comments": [
                     {
                         "user": comment.user.username,
