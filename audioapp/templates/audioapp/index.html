@@ -1,8 +1,5 @@
 {% extends 'base.html' %}
 {% block content %}
-    <p>You are at the index</p>
-    <a href="{% url 'for_you'%}"> For You </a>
-    <a href="{% url 'upload_audio' %}">Upload Sound</a>
     <ul>
         {% for audio in audio_files %}
             <li>

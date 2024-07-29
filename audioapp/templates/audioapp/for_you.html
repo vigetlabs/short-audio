@@ -1,31 +1,52 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>For You</h1>
+    <h1 class="text-2xl font-bold text-center my-8">For You</h1>
+    <div class="flex items-center justify-between space-x-4">
+        <div class="flex items-center space-x-4">
+            <h2 id="audio-title" class="text-xl font-bold">{{ audio_file.title }}</h2>
+            <p id="audio-username" class="text-sm text-gray-600">By {{ audio_file.user.username }}</p>
+        </div>
+        <div class="flex items-center space-x-4 ml-auto">
+            <p id="audio-like-count">{{ audio_file.like_count }} Likes</p>
+            {% if has_liked %}
+                <button id="like-button" data-audio-id="{{ audio_file.id }}" data-action="like" class="text-red-500">
+                    <i class="fas fa-heart"></i>
+                </button>
+            {% else %}
+                <button id="like-button" data-audio-id="{{ audio_file.id }}" data-action="like" class="text-black-500">
+                    <i class="fas fa-heart"></i>
+                </button>
+            {% endif %}
+            <label>
+                <input type="checkbox" id="autoplay-checkbox" {% if autoplay %}checked{% endif %}> Autoplay
+            </label>
+        </div>
+    </div>
+
+    <p id="audio-description">{{ audio_file.description }}</p>
     {% if audio_file %}
-        <h2 id="audio-title">{{ audio_file.title }}</h2>
-        <p id="audio-description">{{ audio_file.description }}</p>
-        <p id="audio-like-count">{{ audio_file.like_count }} Likes</p>
-        
-        <button id="like-button" data-audio-id="{{ audio_file.id }}" data-action="like">
-            Like
-        </button>
-
-        <p id="audio-username">By {{ audio_file.user.username }}</p>
-        <audio controls id="audio-player" autoplay>
-            <source id="audio-source" src="{{ audio_file.file.url }}" type="audio/mp4">
-            Your browser does not support the audio element.
-        </audio>
-        <button id="previous-button" {% if fyp_index <= 0 %}disabled{% endif %}>Previous</button>
-        <button id="next-button" {% if reached_end %}disabled{% endif %}>Next</button>
-        <label>
-            <input type="checkbox" id="autoplay-checkbox" {% if autoplay %}checked{% endif %}> Autoplay
-        </label>
-
+        <div class="flex items-center space-x-4">
+            <button id="previous-button" class="control-button" {% if fyp_index <= 0 %}disabled{% endif %}>
+                <i class="fas fa-step-backward"></i>
+            </button>
+            <audio controls id="audio-player" autoplay class="flex-1">
+                <source id="audio-source" src="{{ audio_file.file.url }}" type="audio/mp4">
+                Your browser does not support the audio element.
+            </audio>
+            <button id="next-button" class="control-button" {% if reached_end %}disabled{% endif %}>
+                <i class="fas fa-step-forward"></i>
+            </button>
+        </div>
+        <h2 class="text-xl font-bold">Comments</h2>
         <form id="comment-form" method="post" action="{% url 'for_you' %}">
             {% csrf_token %}
-            {{ comment_form.as_p }}
-            <button type="submit" name="action" value="comment">Add Comment</button>
+            {% for field in comment_form %}
+                {{ field.errors }}
+                {{ field }}
+            {% endfor %}
+            <div></div>
+            <button type="submit" name="action" value="comment" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700">Comment</button>
         </form>
         <ul id="comments-list">
             {% for comment in comments %}
@@ -46,23 +67,33 @@
             }
             xhr.onload = function () {
                 if (xhr.status === 200) {
+                    // so the the player doesn't reload everytime an action is performed
+                    if (action == "next" || action == "previous") {
+                        var audioPlayer = document.getElementById('audio-player');
+                        audioPlayer.load();
+                        if (document.getElementById('autoplay-checkbox').checked) {
+                            audioPlayer.play();
+                        }
+                        document.getElementById('previous-button').disabled = data.fyp_index <= 0;
+                        document.getElementById('next-button').disabled = data.reached_end;
+                        if (data.reached_end) {
+                            document.getElementById('autoplay-checkbox').checked = false;
+                        }
+                    }
                     var data = JSON.parse(xhr.responseText);
                     document.getElementById('audio-title').textContent = data.title;
                     document.getElementById('audio-description').textContent = data.description;
                     document.getElementById('audio-like-count').textContent = data.like_count + ' Likes';
                     document.getElementById('audio-username').textContent = 'By ' + data.username;
-                    document.getElementById('audio-source').src = data.audio_file_url;
-                    var audioPlayer = document.getElementById('audio-player');
-                    audioPlayer.load();
-                    if (document.getElementById('autoplay-checkbox').checked) {
-                        audioPlayer.play();
+
+                    var likeButton = document.getElementById('like-button');
+                    if (data.has_liked) {
+                        likeButton.classList.remove('text-black-500');
+                        likeButton.classList.add('text-red-500');
+                    } else {
+                        likeButton.classList.remove('text-red-500');
+                        likeButton.classList.add('text-black-500');
                     }
-                    document.getElementById('previous-button').disabled = data.fyp_index <= 0;
-                    document.getElementById('next-button').disabled = data.reached_end;
-                    if (data.reached_end) {
-                        document.getElementById('autoplay-checkbox').checked = false;
-                    }
-    
                     var commentsList = document.getElementById('comments-list');
                     commentsList.innerHTML = '';
                     data.comments.forEach(function(comment) {
@@ -70,6 +101,7 @@
                         li.textContent = comment.user + ': ' + comment.text;
                         commentsList.appendChild(li);
                     });
+                    
                 }
             };
             xhr.send(formData);

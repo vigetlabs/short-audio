@@ -130,7 +130,7 @@ def for_you(request):
             comment.save()
 
     def handle_like(request, audio_file):
-        if not Like.objects.filter(user=request.user, audio_file=audio_file).exists():
+        if not has_liked(request, audio_file):
             like, created = Like.objects.get_or_create(
                 user=request.user, audio_file=audio_file
             )
@@ -138,8 +138,11 @@ def for_you(request):
                 print("Like created:", like)
         else:
             Like.objects.filter(user=request.user, audio_file=audio_file).delete()
+    
+    def has_liked(request, audio_file):
+        return  Like.objects.filter(user=request.user, audio_file=audio_file).exists()
 
-    def fyp_xml_http_request(audio_file, reached_end, fyp_index):
+    def fyp_xml_http_request(audio_file, reached_end, fyp_index, request):
         return JsonResponse(
             {
                 "audio_file_url": audio_file.file.url,
@@ -147,6 +150,7 @@ def for_you(request):
                 "description": audio_file.description,
                 "fyp_index": fyp_index,
                 "reached_end": reached_end,
+                "has_liked": has_liked(request, audio_file),
                 "username": audio_file.user.username,
                 "like_count": audio_file.like_set.count(),
                 "comments": [
@@ -177,7 +181,7 @@ def for_you(request):
     audio_file = get_object_or_404(AudioFile, id=fyp_order[fyp_index])
 
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        return fyp_xml_http_request(audio_file, reached_end, fyp_index)
+        return fyp_xml_http_request(audio_file, reached_end, fyp_index, request)
 
     autoplay = request.session.get("autoplay", False)
 
@@ -191,6 +195,7 @@ def for_you(request):
             "autoplay": autoplay,
             "comment_form": CommentForm(),
             "comments": audio_file.comments.all(),
+            "has_liked": has_liked(request, audio_file),
         },
     )
 
