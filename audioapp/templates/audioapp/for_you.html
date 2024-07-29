@@ -79,15 +79,18 @@
             xhr.onload = function () {
                 if (xhr.status === 200) {
                     // so the the player doesn't reload everytime an action is performed
+                    var data = JSON.parse(xhr.responseText);
                     if (action == "next" || action == "previous") {
                         var audioPlayer = document.getElementById('audio-player');
+                        var audioSource = document.getElementById('audio-source');
+                        audioSource.src = data.audio_source;
                         audioPlayer.load();
                         if (document.getElementById('autoplay-checkbox').checked) {
                             audioPlayer.play();
                         }
-                        document.getElementById('comment-form').reset();
+                        document.getElementById('comment-form').reset();           
                     }   
-                    var data = JSON.parse(xhr.responseText);
+        
                     document.getElementById('audio-title').textContent = data.title;
                     document.getElementById('audio-description').textContent = data.description;
                     document.getElementById('audio-like-count').textContent = data.like_count + ' Likes';
