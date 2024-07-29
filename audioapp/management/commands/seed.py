@@ -27,7 +27,7 @@ class Command(BaseCommand):
             users.append(user)
 
         # Get the sample .mp3 file
-        sample_audio_path = os.path.join("audioapp", "sample_audio", "baby_shark.mp3")
+        sample_audio_path = os.path.join("audioapp", "sample_audio", "test.mp3")
         if not os.path.exists(sample_audio_path):
             self.stdout.write(self.style.ERROR("Sample audio file not found."))
             return
