@@ -5,7 +5,9 @@
     <div class="flex items-center justify-between space-x-4">
         <div class="flex items-center space-x-4">
             <h2 id="audio-title" class="text-xl font-bold">{{ audio_file.title }}</h2>
-            <p id="audio-username" class="text-sm text-gray-600">By {{ audio_file.user.username }}</p>
+            <p id="audio-username" class="text-sm text-gray-600">
+                By <a href="{% url 'user_detail' audio_file.user.username %}" class="text-sm text-gray-600 hover:underline">{{ audio_file.user.username }}</a>
+            </p>
         </div>
         <div class="flex items-center space-x-4 ml-auto">
             <p id="audio-like-count">{{ audio_file.like_count }} Likes</p>
@@ -26,17 +28,26 @@
 
     <p id="audio-description">{{ audio_file.description }}</p>
     {% if audio_file %}
-        <div class="flex items-center space-x-4">
-            <button id="previous-button" class="control-button" {% if fyp_index <= 0 %}disabled{% endif %}>
+        <div class="flex items-center space-x-1">
+            <button
+                id="previous-button" 
+                class="text-black p-2 rounded disabled:text-gray-400 disabled:cursor-not-allowed"
+                {% if fyp_index <= 0 %}disabled{% endif %}
+            >
                 <i class="fas fa-step-backward"></i>
             </button>
             <audio controls id="audio-player" autoplay class="flex-1">
                 <source id="audio-source" src="{{ audio_file.file.url }}" type="audio/mp4">
                 Your browser does not support the audio element.
             </audio>
-            <button id="next-button" class="control-button" {% if reached_end %}disabled{% endif %}>
+            <button 
+                id="next-button" 
+                class="text-black p-2 rounded disabled:text-gray-400 disabled:cursor-not-allowed" 
+                {% if reached_end %}disabled{% endif %}
+            >
                 <i class="fas fa-step-forward"></i>
             </button>
+
         </div>
         <h2 class="text-xl font-bold">Comments</h2>
         <form id="comment-form" method="post" action="{% url 'for_you' %}">
@@ -50,7 +61,7 @@
         </form>
         <ul id="comments-list">
             {% for comment in comments %}
-                <li>{{ comment.user.username }}: {{ comment.text }}</li>
+                <li><a href="{% url 'user_detail' comment.user.username %}" class="text-m text-black-600 hover:underline">{{ comment.user.username }}</a>: {{ comment.text }}</li>
             {% endfor %}
         </ul>
     {% else %}
@@ -73,19 +84,21 @@
                         audioPlayer.load();
                         if (document.getElementById('autoplay-checkbox').checked) {
                             audioPlayer.play();
-                        }
-                        document.getElementById('previous-button').disabled = data.fyp_index <= 0;
-                        document.getElementById('next-button').disabled = data.reached_end;
-                        if (data.reached_end) {
-                            document.getElementById('autoplay-checkbox').checked = false;
-                        }
+                    }
+
                     }
                     var data = JSON.parse(xhr.responseText);
                     document.getElementById('audio-title').textContent = data.title;
                     document.getElementById('audio-description').textContent = data.description;
                     document.getElementById('audio-like-count').textContent = data.like_count + ' Likes';
                     document.getElementById('audio-username').textContent = 'By ' + data.username;
-
+                    
+                    document.getElementById('previous-button').disabled = data.fyp_index <= 0;
+                    document.getElementById('next-button').disabled = data.reached_end;
+                    if (data.reached_end) {
+                        document.getElementById('autoplay-checkbox').checked = false;
+                    }
+                
                     var likeButton = document.getElementById('like-button');
                     if (data.has_liked) {
                         likeButton.classList.remove('text-black-500');
