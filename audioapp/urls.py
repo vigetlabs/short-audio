@@ -12,7 +12,7 @@ from .views import (
 
 
 urlpatterns = [
-    path("", views.index, name="index"),
+    path("", for_you, name="for_you"),
     path("accounts/", include("allauth.urls")),
     path("accounts/profile/", views.profile_view, name="profile"),
     path("upload/", upload_audio, name="upload_audio"),
