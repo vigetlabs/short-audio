@@ -6,17 +6,9 @@ import allauth, random
 from .forms import AudioFileForm, CommentForm
 from .models import AudioFile, Like, Comment
 from django.contrib.auth.models import User
+from django.db.models import Subquery
 
 
-# Create your views here.
-@login_required
-def profile_view(request):
-    audio_files = AudioFile.objects.filter(user=request.user)
-    context = {
-        "username": request.user.username,
-        "audio_files": audio_files,
-    }
-    return render(request, "profile.html", context)
 
 
 @login_required
@@ -71,10 +63,12 @@ def audio_detail(request, pk):
 def user_detail(request, username):
     page_user = get_object_or_404(User, username=username)
     audio_files = AudioFile.objects.filter(user=page_user)
+    all_liked_sounds = Like.objects.filter(user=page_user).values('audio_file_id')
+    user_liked_sounds = AudioFile.objects.filter(id__in=Subquery(all_liked_sounds))
     return render(
         request,
         "user_detail.html",
-        {"page_user": page_user, "audio_files": audio_files},
+        {"page_user": page_user, "audio_files": audio_files, "user_liked_sounds": user_liked_sounds},
     )
 
 

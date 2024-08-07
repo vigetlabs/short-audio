@@ -1,9 +1,13 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>{{ page_user.username }}</h1>
+    <h1 class="text-2xl font-bold text-center my-8">{{page_user.username}}</h1>
+    <div class="flex justify-center my-4">
+        <a id="users_sounds" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2">Sounds</a>
+        <a id="liked_sounds" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mx-2">Liked</a>
+    </div>
     <h2>{{ page_user.username }}'s Sounds</h2>
-    <ul>
+    <ul id="audio_list">
         {% for audio in audio_files %}
             <li>
                 <a href="{% url 'audio_detail' audio.pk %}">{{ audio.title }}</a>
@@ -16,3 +20,7 @@
     </ul>
     <a href="{% url 'upload_audio' %}">Upload new sound</a>
 {% endblock %}
+
+
+
+

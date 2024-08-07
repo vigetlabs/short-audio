@@ -14,7 +14,6 @@ from .views import (
 urlpatterns = [
     path("", for_you, name="for_you"),
     path("accounts/", include("allauth.urls")),
-    path("accounts/profile/", views.profile_view, name="profile"),
     path("upload/", upload_audio, name="upload_audio"),
     path("audio/<int:pk>/", audio_detail, name="audio_detail"),
     path("user/<str:username>/", user_detail, name="user_detail"),
